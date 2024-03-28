@@ -54,7 +54,7 @@ func main() {
 		stringcontent := string(r)
 		endIndex := strings.Index(stringcontent[5:], "\000")
 
-		fmt.Print(stringcontent[5+endIndex:])
+		fmt.Print(stringcontent[6+endIndex:])
 	default: 
 		fmt.Fprint(os.Stderr, "Unknown command %s\n", command)
 		os.Exit(1)
