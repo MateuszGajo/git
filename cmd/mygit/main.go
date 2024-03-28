@@ -22,8 +22,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(os.Args[0])
-
 	switch command := os.Args[1]; command {
 	case "init":
 		for _, dir := range []string{".git", ".git/objects", ".git/refs", ".git/refs"} {
