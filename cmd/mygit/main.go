@@ -68,33 +68,19 @@ func main() {
 		}
 		defer file.Close()
 		content, err := os.ReadFile(filePath)
-		fileInfo, err := file.Stat()
-		if err != nil {
-			os.Exit(1)
-		}
 
-		// Prepare a buffer to store file content and file size
-		buffer := make([]byte, fileInfo.Size()+int64(len(fileInfo.Name())))
-		copy(buffer, fileInfo.Name()) // Copy file name to the buffer
-		n, err := file.Read(buffer[len(fileInfo.Name()):])
-		if err != nil && err != io.EOF {
-			os.Exit(1)
-		}
 		strContent := string(content)
 		if err != nil {
 			os.Exit(1)
 		}
 
-		hasher := sha1.New()
-		if _, err := hasher.Write(buffer[:len(fileInfo.Name())+n]); err != nil {
-			os.Exit(1)
-		}
-	
-		hashByte := hasher.Sum(nil)
-		hashString := hex.EncodeToString(hashByte) 
-
-
 		blobContent := "blob " + strconv.Itoa(len(strContent)) +"\x00"+ strContent
+
+		hasher := sha1.New()
+		hasher.Write([]byte(blobContent))
+		hash := hasher.Sum(nil)
+		hexHash := hex.EncodeToString(hash)
+		
 
 		var compressedData bytes.Buffer
 
@@ -110,9 +96,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Print(hashString)
-		folderame := hashString[:2]
-		filename := hashString[2:]
+		fmt.Print(hexHash)
+		folderame := hexHash[:2]
+		filename := hexHash[2:]
 		if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
 			os.Exit(1)
 		}
