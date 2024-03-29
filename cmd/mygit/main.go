@@ -98,17 +98,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Println(blobContent)
-		fmt.Println(compressedData.Bytes())
-		fmt.Println(hashString)
+		fmt.Print(hashString)
 		folderame := hashString[:2]
 		filename := hashString[2:]
 		if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
 			os.Exit(1)
 		}
-		fmt.Print(filename)
 		err = os.WriteFile(".git/objects/"+folderame +"/"+ filename,compressedData.Bytes(), 0644)
-		fmt.Print(err)
 		if err != nil {
 			os.Exit(1)
 		}
