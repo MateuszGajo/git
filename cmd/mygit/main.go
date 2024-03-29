@@ -47,12 +47,10 @@ func main() {
 
 
 		gzread, err := zlib.NewReader(bytes.NewReader(file))
-		fmt.Print(err)
 		if err != nil {
 			os.Exit(1)
 		}
 		r,err := io.ReadAll(gzread)
-		fmt.Print(err)
 		if err != nil {
 			os.Exit(1)
 		}
