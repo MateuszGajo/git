@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"compress/zlib"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -42,11 +45,14 @@ func main() {
 			os.Exit(1)
 		}
 
+
 		gzread, err := zlib.NewReader(bytes.NewReader(file))
+		fmt.Print(err)
 		if err != nil {
 			os.Exit(1)
 		}
 		r,err := io.ReadAll(gzread)
+		fmt.Print(err)
 		if err != nil {
 			os.Exit(1)
 		}
@@ -55,6 +61,61 @@ func main() {
 		endIndex := strings.Index(stringcontent[5:], "\000")
 
 		fmt.Print(stringcontent[6+endIndex:])
+
+	case "hash-object":
+		filePath := os.Args[3]
+		file, err := os.Open(filePath)
+		if err != nil {
+			os.Exit(1)
+		}
+		defer file.Close()
+		content, err := os.ReadFile(filePath)
+		strContent := string(content)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		hasher := sha1.New()
+		if _, err := io.Copy(hasher, file); err != nil {
+			os.Exit(1)
+		}
+
+		hashByte := hasher.Sum(nil)
+		hashString := hex.EncodeToString(hashByte) 
+
+
+		blobContent := "blob " + strconv.Itoa(len(strContent)) +"\x00"+ strContent
+
+		var compressedData bytes.Buffer
+
+		gz := zlib.NewWriter(&compressedData)
+
+		_, err = gz.Write([]byte(blobContent))
+		if err != nil {
+			os.Exit(1)
+		}
+
+		err = gz.Close()
+		if err != nil {
+			os.Exit(1)
+		}
+
+		fmt.Println(blobContent)
+		fmt.Println(compressedData.Bytes())
+		fmt.Println(hashString)
+		folderame := hashString[:2]
+		filename := hashString[2:]
+		if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
+			os.Exit(1)
+		}
+		fmt.Print(filename)
+		err = os.WriteFile(".git/objects/"+folderame +"/"+ filename,compressedData.Bytes(), 0644)
+		fmt.Print(err)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		
 	default: 
 		fmt.Fprint(os.Stderr, "Unknown command %s\n", command)
 		os.Exit(1)
