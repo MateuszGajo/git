@@ -13,9 +13,14 @@ import (
 	"strings"
 )
 
-// hash := "95d09f2b10159347eece71399a7e2e907ea3df4f"
+type TreeObject struct {
+	Mode string
+	Name string
+	Hash []byte
+}
 
-// Usage: your_git.sh <command> <arg1> <arg2> ...
+
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: mygit <command> [<args>...]\n")
@@ -39,7 +44,6 @@ func main() {
 	case "cat-file":
 		hash := os.Args[3]
 		path := filepath.Join(".git", "objects", hash[:2], hash[2:])
-
 		file, err := os.ReadFile(path)
 		if err != nil {
 			os.Exit(1)
@@ -58,7 +62,45 @@ func main() {
 		stringcontent := string(r)
 		endIndex := strings.Index(stringcontent[5:], "\000")
 
-		fmt.Print(stringcontent[6+endIndex:])
+		fmt.Println(stringcontent[6+endIndex:])
+
+	case "ls-tree":
+		hash := os.Args[3]
+		path := filepath.Join(".git", "objects", hash[:2], hash[2:])
+		file, err := os.ReadFile(path)
+		if err != nil {
+			os.Exit(1)
+		}
+
+
+		gzread, err := zlib.NewReader(bytes.NewReader(file))
+		if err != nil {
+			os.Exit(1)
+		}
+
+
+		r,err := io.ReadAll(gzread)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		stringcontent := r
+		endIndex := bytes.IndexByte(stringcontent, '\x00')
+
+		tree := stringcontent[endIndex+1:]
+
+		for len(tree) > 0 {
+			space := bytes.IndexByte(tree, ' ')
+			nullbyte := bytes.IndexByte(tree, '\x00')
+			neww := TreeObject {
+				Mode: string(tree[:space]),
+				Name: string(tree[space+1: nullbyte]),
+				Hash: tree[nullbyte +1: nullbyte+1 + 20],
+			}
+			tree = tree[nullbyte+1 + 20:]
+			fmt.Println(neww.Name)
+		}
+
 
 	case "hash-object":
 		filePath := os.Args[3]
