@@ -62,7 +62,7 @@ func main() {
 		stringcontent := string(r)
 		endIndex := strings.Index(stringcontent[5:], "\000")
 
-		fmt.Println(stringcontent[6+endIndex:])
+		fmt.Print(stringcontent[6+endIndex:])
 
 	case "ls-tree":
 		hash := os.Args[3]
