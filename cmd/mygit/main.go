@@ -240,11 +240,8 @@ func main() {
 		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
 		output += "\n" + message
 		
-		// if err != nil {
-		// 	os.Exit(1)
-		// }
-		// sha := createTree(currentDic)
-		fmt.Println(output)
+		sha := createSha(output)
+		fmt.Print(sha)
 
 	case "hash-object":
 		filePath := os.Args[3]
