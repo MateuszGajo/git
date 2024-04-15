@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type TreeObject struct {
@@ -224,6 +225,26 @@ func main() {
 		}
 		sha := createTree(currentDic)
 		fmt.Println(sha)
+
+	case "commit-tree":
+		treeSha := os.Args[2]
+		commitSha := os.Args[4]
+		message := os.Args[6]
+		output:= ""
+		output += "tree " + treeSha + "\n"
+		if(commitSha != "") {
+			output += "parent " + treeSha + "\n"
+		}
+		cTime := time.Now().Unix()
+		output += "author abcd abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -0700 \n" 
+		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
+		output += "\n" + message
+		
+		// if err != nil {
+		// 	os.Exit(1)
+		// }
+		// sha := createTree(currentDic)
+		fmt.Println(output)
 
 	case "hash-object":
 		filePath := os.Args[3]
