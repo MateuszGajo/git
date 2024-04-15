@@ -248,13 +248,14 @@ func main() {
 			output += "parent " + treeSha + "\n"
 		}
 		cTime := time.Now().Unix()
-		output += "author abcd abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -0700 \n" 
+		output += "author abcd abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -070 \n" 
 		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
 		output += "\n" + message
 
 
 
 		commitHeader := "commit "+ strconv.Itoa(len(output)) +"\x00"+ output
+
 
 		sha := createSha(commitHeader)
 
