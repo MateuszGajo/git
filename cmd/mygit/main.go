@@ -101,7 +101,7 @@ func createTree(directory string) string {
 			continue;
 		}
 		if(item.IsDir()) {
-			content += "040000" + " " + item.Name() + "\x00"
+			content += "40000" + " " + item.Name() + "\x00"
 			sha := createTree(filepath.Join(directory,item.Name()))
 			binaryHash, err := hex.DecodeString(sha)
 			if err != nil {
