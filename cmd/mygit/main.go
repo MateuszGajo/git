@@ -19,6 +19,113 @@ type TreeObject struct {
 	Hash []byte
 }
 
+func createSha(content string) string {
+	hasher := sha1.New()
+	hasher.Write([]byte(content))
+	hash := hasher.Sum(nil)
+	hexHash := hex.EncodeToString(hash)
+
+	return hexHash
+}
+
+func createHistory(sha string, data []byte) {
+	folderame := sha[:2]
+	filename := sha[2:]
+
+	err := os.RemoveAll(".git/objects/"+ folderame)
+    if err != nil {
+        os.Exit(1)
+    }
+	
+	if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
+		os.Exit(1)
+	}
+	err = os.WriteFile(".git/objects/"+folderame +"/"+ filename, data, 0644)
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func compressData(blobContent string) bytes.Buffer {
+	var compressedData bytes.Buffer
+
+	gz := zlib.NewWriter(&compressedData)
+
+	_, err := gz.Write([]byte(blobContent))
+	if err != nil {
+		os.Exit(1)
+	}
+
+	err = gz.Close()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	return compressedData
+}
+
+func createBlob(filePath string) string {
+	file, err := os.Open(filePath)
+	if err != nil {
+		os.Exit(1)
+	}
+	defer file.Close()
+	content, err := os.ReadFile(filePath)
+
+	strContent := string(content)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	blobContent := "blob " + strconv.Itoa(len(strContent)) +"\x00"+ strContent
+
+
+	sha := createSha(blobContent)
+	compressedData := compressData(blobContent)
+
+
+
+	createHistory(sha, compressedData.Bytes())
+
+	return sha
+}
+
+func createTree(directory string) string {
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		os.Exit(1)
+	}
+	output := "tree 50\x00"
+	for _, item := range files {
+		if (item.Name() == ".git") {
+			continue;
+		}
+		if(item.IsDir()) {
+			output += "040000" + " " + item.Name() + "\x00"
+			sha := createTree(filepath.Join(directory,item.Name()))
+			binaryHash, err := hex.DecodeString(sha)
+			if err != nil {
+				fmt.Println("Error decoding hexadecimal:", err)
+			}
+			output += string(binaryHash)
+		} else {
+			output += "100644" + " " + item.Name() + "\x00"
+			sha := createBlob(filepath.Join(directory,item.Name()))
+			binaryHash, err := hex.DecodeString(sha)
+			if err != nil {
+				fmt.Println("Error decoding hexadecimal:", err)
+			}
+			output += string(binaryHash)
+		} 
+	}
+	sha := createSha(output)
+	compressedData := compressData(output)
+
+	createHistory(sha, compressedData.Bytes())
+
+	return sha
+}
+
 
 
 func main() {
@@ -46,16 +153,19 @@ func main() {
 		path := filepath.Join(".git", "objects", hash[:2], hash[2:])
 		file, err := os.ReadFile(path)
 		if err != nil {
+			fmt.Print(err)
 			os.Exit(1)
 		}
 
 
 		gzread, err := zlib.NewReader(bytes.NewReader(file))
 		if err != nil {
+			fmt.Print(err)
 			os.Exit(1)
 		}
 		r,err := io.ReadAll(gzread)
 		if err != nil {
+			fmt.Print(err)
 			os.Exit(1)
 		}
 
@@ -69,20 +179,24 @@ func main() {
 		path := filepath.Join(".git", "objects", hash[:2], hash[2:])
 		file, err := os.ReadFile(path)
 		if err != nil {
+			fmt.Println(err)
 			os.Exit(1)
 		}
 
 
 		gzread, err := zlib.NewReader(bytes.NewReader(file))
 		if err != nil {
+			fmt.Println("aaabbb")
 			os.Exit(1)
 		}
 
 
 		r,err := io.ReadAll(gzread)
 		if err != nil {
+			fmt.Println("aaabccb")
 			os.Exit(1)
 		}
+
 
 		stringcontent := r
 		endIndex := bytes.IndexByte(stringcontent, '\x00')
@@ -101,53 +215,18 @@ func main() {
 			fmt.Println(neww.Name)
 		}
 
+	case "write-tree":
+		currentDic, err := os.Getwd()
+		if err != nil {
+			os.Exit(1)
+		}
+		sha := createTree(currentDic)
+		fmt.Println(sha)
 
 	case "hash-object":
 		filePath := os.Args[3]
-		file, err := os.Open(filePath)
-		if err != nil {
-			os.Exit(1)
-		}
-		defer file.Close()
-		content, err := os.ReadFile(filePath)
-
-		strContent := string(content)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		blobContent := "blob " + strconv.Itoa(len(strContent)) +"\x00"+ strContent
-
-		hasher := sha1.New()
-		hasher.Write([]byte(blobContent))
-		hash := hasher.Sum(nil)
-		hexHash := hex.EncodeToString(hash)
-		
-
-		var compressedData bytes.Buffer
-
-		gz := zlib.NewWriter(&compressedData)
-
-		_, err = gz.Write([]byte(blobContent))
-		if err != nil {
-			os.Exit(1)
-		}
-
-		err = gz.Close()
-		if err != nil {
-			os.Exit(1)
-		}
-
-		fmt.Print(hexHash)
-		folderame := hexHash[:2]
-		filename := hexHash[2:]
-		if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
-			os.Exit(1)
-		}
-		err = os.WriteFile(".git/objects/"+folderame +"/"+ filename,compressedData.Bytes(), 0644)
-		if err != nil {
-			os.Exit(1)
-		}
+		sha := createBlob(filePath)
+		fmt.Print(sha)
 
 		
 	default: 
@@ -155,3 +234,10 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+
+
+			// hasher := sha1.New()
+			// hasher.Write([]byte(blobContent))
+			// hash := hasher.Sum(nil)
+			// hexHash := hex.EncodeToString(hash)
