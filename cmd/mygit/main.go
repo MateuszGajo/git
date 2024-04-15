@@ -95,7 +95,7 @@ func createTree(directory string) string {
 	if err != nil {
 		os.Exit(1)
 	}
-	content := "tree 50\x00"
+	content := ""
 	for _, item := range files {
 		if (item.Name() == ".git") {
 			continue;
