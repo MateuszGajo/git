@@ -37,7 +37,6 @@ func createHistory(sha string, data []byte) {
     if err != nil {
         os.Exit(1)
     }
-	
 	if err := os.Mkdir(".git/objects/"+ folderame, 0644); err != nil {
 		os.Exit(1)
 	}
@@ -83,6 +82,19 @@ func createBlob(filePath string) string {
 
 	sha := createSha(blobContent)
 	compressedData := compressData(blobContent)
+
+
+
+	createHistory(sha, compressedData.Bytes())
+
+	return sha
+}
+
+func createBlobWithContent( content string) string {
+
+
+	sha := createSha(content)
+	compressedData := compressData(content)
 
 
 
@@ -240,7 +252,7 @@ func main() {
 		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
 		output += "\n" + message
 		
-		sha := createSha(output)
+		sha := createBlobWithContent(output)
 		fmt.Print(sha)
 
 	case "hash-object":
