@@ -95,29 +95,31 @@ func createTree(directory string) string {
 	if err != nil {
 		os.Exit(1)
 	}
-	output := "tree 50\x00"
+	content := "tree 50\x00"
 	for _, item := range files {
 		if (item.Name() == ".git") {
 			continue;
 		}
 		if(item.IsDir()) {
-			output += "040000" + " " + item.Name() + "\x00"
+			content += "040000" + " " + item.Name() + "\x00"
 			sha := createTree(filepath.Join(directory,item.Name()))
 			binaryHash, err := hex.DecodeString(sha)
 			if err != nil {
 				fmt.Println("Error decoding hexadecimal:", err)
 			}
-			output += string(binaryHash)
+			content += string(binaryHash)
 		} else {
-			output += "100644" + " " + item.Name() + "\x00"
+			content += "100644" + " " + item.Name() + "\x00"
 			sha := createBlob(filepath.Join(directory,item.Name()))
 			binaryHash, err := hex.DecodeString(sha)
 			if err != nil {
 				fmt.Println("Error decoding hexadecimal:", err)
 			}
-			output += string(binaryHash)
+			content += string(binaryHash)
 		} 
 	}
+
+	output := "tree "+ strconv.Itoa(len(content)) +"\x00"+ content
 	sha := createSha(output)
 	compressedData := compressData(output)
 
