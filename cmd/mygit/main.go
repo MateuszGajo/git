@@ -257,8 +257,10 @@ func main() {
 		commitHeader := "commit "+ strconv.Itoa(len(output)) +"\x00"+ output
 
 		sha := createSha(commitHeader)
+
+		compressedData := compressData(commitHeader)
 		
-		createHistory(sha, []byte(commitHeader))
+		createHistory(sha, compressedData.Bytes())
 		fmt.Print(sha)
 
 	case "hash-object":
