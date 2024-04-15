@@ -251,8 +251,10 @@ func main() {
 		output += "author abcd abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -0700 \n" 
 		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
 		output += "\n" + message
+
+		commitHeader := fmt.Sprintf("commit %d", len(output)+1)
 		
-		sha := createBlobWithContent(output)
+		sha := createBlobWithContent(commitHeader+output)
 		fmt.Print(sha)
 
 	case "hash-object":
