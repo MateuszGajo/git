@@ -201,14 +201,12 @@ func main() {
 
 		gzread, err := zlib.NewReader(bytes.NewReader(file))
 		if err != nil {
-			fmt.Println("aaabbb")
 			os.Exit(1)
 		}
 
 
 		r,err := io.ReadAll(gzread)
 		if err != nil {
-			fmt.Println("aaabccb")
 			os.Exit(1)
 		}
 
@@ -259,7 +257,6 @@ func main() {
 
 		commitHeader := "commit "+ strconv.Itoa(len(output)) +"\x00"+ output
 
-		fmt.Println(commitHeader);
 		sha := createSha(commitHeader)
 
 		compressedData := compressData(commitHeader)
