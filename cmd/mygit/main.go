@@ -238,6 +238,9 @@ func main() {
 		sha := createTree(currentDic)
 		fmt.Println(sha)
 
+
+	
+
 	case "commit-tree":
 		treeSha := os.Args[2]
 		commitSha := os.Args[4]
@@ -245,18 +248,18 @@ func main() {
 		output:= ""
 		output += "tree " + treeSha + "\n"
 		if(commitSha != "") {
-			output += "parent " + treeSha + "\n"
+			output += "parent " + commitSha + "\n"
 		}
 		cTime := time.Now().Unix()
-		output += "author abcd abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -070 \n" 
-		output += "commiter abcd abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
-		output += "\n" + message
+		output += "author abcd <abcd@gmail.com> " +  strconv.FormatInt(cTime, 10) + " -070 \n" 
+		output += "commiter abcd <abcd@gmail.com> " + strconv.FormatInt(cTime, 10) + " -0700 \n" 
+		output += "\n" + message + "\n"
 
 
 
 		commitHeader := "commit "+ strconv.Itoa(len(output)) +"\x00"+ output
 
-
+		fmt.Println(commitHeader);
 		sha := createSha(commitHeader)
 
 		compressedData := compressData(commitHeader)
